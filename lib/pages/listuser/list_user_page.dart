@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:structure_flutter_mobile/bloc/blocs/user_bloc.dart';
 import 'package:structure_flutter_mobile/bloc/events/user_event.dart';
 import 'package:structure_flutter_mobile/bloc/states/user_state.dart';
+import 'package:structure_flutter_mobile/core/resource/app_localizations.dart';
 import 'package:structure_flutter_mobile/di/injection.dart';
 
+// Todo Sample. Delete later
 class ListUserPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -42,9 +44,23 @@ class ListUserPageState extends State<ListUserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: BlocBuilder(
-          bloc: _userGitBloc,
-          builder: _builderBloc,
+        child: Column(
+          children: [
+            Center(
+              child: Text(
+                AppLocalization.of(context).translate('list_user'),
+                style: TextStyle(
+                  fontSize: 30
+                ),
+              ),
+            ),
+            Expanded(
+              child: (BlocBuilder(
+                bloc: _userGitBloc,
+                builder: _builderBloc,
+              )),
+            ),
+          ],
         ),
       ),
     );

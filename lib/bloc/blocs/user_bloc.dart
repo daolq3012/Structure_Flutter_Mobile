@@ -1,16 +1,15 @@
-
 import 'package:bloc/bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:structure_flutter_mobile/bloc/events/user_event.dart';
 import 'package:structure_flutter_mobile/bloc/states/user_state.dart';
-import 'package:structure_flutter_mobile/data/model/user.dart';
+import 'package:structure_flutter_mobile/data/entities/user_git_entity.dart';
+import 'package:structure_flutter_mobile/data/source/remote/user_remote_datasource.dart';
 import 'package:structure_flutter_mobile/di/injection.dart';
-import 'package:structure_flutter_mobile/repositories/user_repository.dart';
 
 @singleton
 class UserGitBloc extends Bloc<UserGitEvent, UserGitState> {
-  final UserRepository _userRepository = getIt<UserRepository>();
+  final UserRemoteDataSource _userRepository = getIt<UserRemoteDataSource>();
 
   UserGitBloc();
 
@@ -34,7 +33,7 @@ class UserGitBloc extends Bloc<UserGitEvent, UserGitState> {
           final users = await fetchUserGit(1);
           yield UserGitLoaded(users: users, hasReachMax: false);
         } else if (currentState is UserGitLoaded) {
-          var page =
+          final page =
               ((currentState as UserGitLoaded).users.length / 10).ceil() + 1;
           final users = await fetchUserGit(page);
           yield users.length < 10
@@ -52,7 +51,7 @@ class UserGitBloc extends Bloc<UserGitEvent, UserGitState> {
   bool _hasReachedMax(UserGitState state) =>
       state is UserGitLoaded && state.hasReachMax;
 
-  Future<List<UserGit>> fetchUserGit(int page) async {
+  Future<List<UserGitEntity>> fetchUserGit(int page) async {
     return _userRepository.getUser(page);
   }
 }

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '../user_git_response.dart';
+part of 'user_git_response.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -9,8 +9,9 @@ part of '../user_git_response.dart';
 UserGitResponse _$UserGitResponseFromJson(Map<String, dynamic> json) {
   return UserGitResponse(
     (json['items'] as List)
-        ?.map((e) =>
-            e == null ? null : UserGit.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => e == null
+            ? null
+            : UserGitEntity.fromJson(e as Map<String, dynamic>))
         ?.toList(),
   );
 }

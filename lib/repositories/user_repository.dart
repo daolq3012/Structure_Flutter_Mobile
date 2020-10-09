@@ -1,30 +1,21 @@
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
-import 'package:structure_flutter_mobile/core/middleware/dio_client.dart';
-import 'package:structure_flutter_mobile/di/injection.dart';
+import 'package:structure_flutter_mobile/data/entities/user_git_entity.dart';
+import 'package:structure_flutter_mobile/data/source/remote/user_remote_datasource.dart';
 
-import '../data/model/user.dart';
+import '../data/entities/user_git_entity.dart';
 
 abstract class UserRepository {
-  Future<List<UserGit>> getUser(int page);
+  Future<List<UserGitEntity>> getUser(int page);
 }
 
 @Singleton(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource _userRemoteDataSource;
 
-  final DioClient _dioClient;
-
-  UserRepositoryImpl(this._dioClient);
+  UserRepositoryImpl(this._userRemoteDataSource);
 
   @override
-  Future<List<UserGit>> getUser(int page) async {
-    final response = await _dioClient.get('/search/users',
-        queryParameters: {'q': 'abc', 'page': page, 'per_page': 10});
-    var tagObjsJson = jsonDecode(json.encode(response))['items'] as List;
-    List<UserGit> tagObjs =
-        tagObjsJson.map((tagJson) => UserGit.fromJson(tagJson)).toList();
-    return tagObjs;
+  Future<List<UserGitEntity>> getUser(int page) async {
+    return _userRemoteDataSource.getUser(page);
   }
 }

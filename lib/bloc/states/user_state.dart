@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:structure_flutter_mobile/data/model/user.dart';
+import 'package:structure_flutter_mobile/data/entities/user_git_entity.dart';
 
 abstract class UserGitState extends Equatable {
   UserGitState([List props = const []]) : super(props);
@@ -16,13 +16,13 @@ class UserGitError extends UserGitState {
 }
 
 class UserGitLoaded extends UserGitState {
-  final List<UserGit> users;
+  final List<UserGitEntity> users;
   final bool hasReachMax;
 
   UserGitLoaded({this.users, this.hasReachMax}) : super([users, hasReachMax]);
 
   UserGitLoaded copyWith({
-    List<UserGit> posts,
+    List<UserGitEntity> posts,
     bool hasReachedMax,
   }) {
     return UserGitLoaded(

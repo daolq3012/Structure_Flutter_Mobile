@@ -1,20 +1,21 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '../user.dart';
+part of 'user_git_entity.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-UserGit _$UserGitFromJson(Map<String, dynamic> json) {
-  return UserGit(
+UserGitEntity _$UserGitFromJson(Map<String, dynamic> json) {
+  return UserGitEntity(
     id: json['id'] as int,
     name: json['login'] as String,
     avatar: json['avatar_url'] as String,
   );
 }
 
-Map<String, dynamic> _$UserGitToJson(UserGit instance) => <String, dynamic>{
+Map<String, dynamic> _$UserGitToJson(UserGitEntity instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'login': instance.name,
       'avatar_url': instance.avatar,

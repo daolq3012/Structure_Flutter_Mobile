@@ -1,7 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:structure_flutter_mobile/data/model/user.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:structure_flutter_mobile/bloc/blocs/search_users_bloc.dart';
+import 'package:structure_flutter_mobile/bloc/events/search_users_event.dart';
+import 'package:structure_flutter_mobile/bloc/states/search_users_state.dart';
 import 'package:structure_flutter_mobile/data/source/remote/datasource/user_remote_datasource.dart';
 import 'package:structure_flutter_mobile/data/source/remote/service/dio_client.dart';
 import 'package:structure_flutter_mobile/repositories/user_repository.dart';
@@ -15,81 +18,132 @@ class ListUserPage extends StatefulWidget {
 
 class ListUserPageState extends State<ListUserPage> {
   final _thresholdPixel = 200.0; // pixel
-  final int limitPerPage = 10; // limit data in a request
-  String keyword = "daol";
-  int page = 0;
-  bool canRequest = true;
-
-  UserRepository _userRepository;
   ScrollController _scrollController;
 
-  List<User> users = List<User>();
+  bool isFetching = false;
+
+  SearchUserBloc _searchUserBloc;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController()..addListener((_onScroll));
 
+    _scrollController = ScrollController()..addListener((_onScroll));
     DioClient client = DioClient("https://api.github.com");
-    _userRepository = UserRepositoryImpl(UserRemoteDataSourceImpl(client));
-    _fetchData();
+    UserRepository _userRepository =
+        UserRepositoryImpl(UserRemoteDataSourceImpl(client));
+    _searchUserBloc = SearchUserBloc(_userRepository);
+
+    _searchUserBloc.add(FetchUsersEvent());
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    // _searchUserBloc.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      controller: _scrollController,
-      itemCount: users.length,
-      itemBuilder: (context, pos) {
-        return Padding(
-            padding: EdgeInsets.only(bottom: 16.0),
-            child: Card(
-              color: Colors.white,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
-                child: Text(
-                  users[pos].name,
-                  style: TextStyle(
-                    fontSize: 18.0,
-                    height: 1.6,
-                  ),
-                ),
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              margin: EdgeInsets.all(8),
+              child: Text(
+                "ABC",
+                style: TextStyle(fontSize: 30),
               ),
-            ));
-      },
+            ),
+            Expanded(
+                child: BlocBuilder(
+              cubit: _searchUserBloc,
+              builder: _builderBloc,
+            ))
+          ],
+        ),
+      ),
     );
   }
 
   _onScroll() {
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
-    if (maxScroll - currentScroll <= _thresholdPixel && canRequest) {
-      page++;
-      _fetchData();
+    if (maxScroll - currentScroll <= _thresholdPixel) {
+      if (!isFetching) {
+        isFetching = true;
+        _searchUserBloc.add(FetchUsersEvent());
+      }
     }
   }
 
-  _fetchData() async {
-    canRequest = false;
-    _userRepository
-        .searchUsers(keyword, page: page, limit: limitPerPage)
-        .then((value) {
-      value.when(onSuccess: (data) {
-        setState(() {
-          canRequest = true;
-          // no data to request
-          if (data.length < 10) canRequest = false;
-          users.addAll(data);
-        });
-      }, onFailure: (e) {
-        log("QQQ" + e.errorMessage);
-      });
-    });
+  Widget _builderBloc(BuildContext context, SearchUserState state) {
+    if (state is SearchUserInitialized) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    if (state is SearchUserError) {
+      isFetching = false;
+      return Center(
+        child: Text('failed to fetch users'),
+      );
+    }
+    if (state is SearchUserLoaded && state.users.isNotEmpty) {
+      isFetching = false;
+      return _buildListView(state);
+    }
+    return Center(
+      child: Text('no users'),
+    );
+  }
+
+  _buildListView(SearchUserLoaded state) {
+    final size = MediaQuery.of(context).size;
+    return ListView.builder(
+        controller: _scrollController,
+        itemBuilder: (BuildContext context, int index) {
+          return index == state.users.length
+              ? Center(child: CircularProgressIndicator())
+              : Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: 16),
+                        child: SizedBox(
+                          width: size.width * 0.2,
+                          height: size.height * 0.1,
+                          child: Stack(
+                            children: [
+                              Center(child: CircularProgressIndicator()),
+                              Image(
+                                image: NetworkImage(
+                                  state.users[index].avatar,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 16),
+                        child: Text(
+                          state.users[index].name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            color: Colors.black87,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+        },
+        itemCount:
+            state.hasReachMax ? state.users.length : state.users.length + 1);
   }
 }
